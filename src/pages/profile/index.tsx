@@ -3,40 +3,108 @@ import {
   Box,
   Container,
   Flex,
-  FormControl,
-  FormHelperText,
-  FormLabel,
   Heading,
   Switch,
   Text,
   SlideFade,
   Button,
+  useToast,
 } from "@chakra-ui/react";
 
 import type { NextPage, GetServerSideProps } from "next";
 import router from "next/router";
-
-import { SyntheticEvent, useRef, useState } from "react";
-
-import { useUser } from "@auth0/nextjs-auth0";
-
-import { CustomEditableInput } from "../../components/CustomEditableInput";
-import { FaDiscord } from "react-icons/fa";
-import { GlobalLoading } from "../../components/Loading";
 import Head from "next/head";
 
-const Profile: NextPage = () => {
+import { database } from "../../services/mongodb";
+import { api } from "../../services/axios";
+
+import { memo, SyntheticEvent, useRef, useState } from "react";
+
+import { getSession, useUser, withPageAuthRequired } from "@auth0/nextjs-auth0";
+
+import { CustomEditableInput } from "../../components/CustomEditableInput";
+import { GlobalLoading } from "../../components/Loading";
+import { CustomToast } from "../../components/CustomToast";
+
+import { FaDiscord } from "react-icons/fa";
+import { FormArea } from "../../components/FormArea";
+import { useLoadingList } from "../../hooks/useLoadingList";
+
+interface ProfileProps {
+  userInfo: {
+    bio: string;
+    status: boolean;
+  };
+}
+
+const Profile: NextPage<ProfileProps> = ({ userInfo: { bio, status } }) => {
   const { user, isLoading } = useUser();
 
   const [hasDataChanged, setHasDataChanged] = useState(false);
 
+  const { loadingList, addToLoadingList, removeFromLoadingList } = useLoadingList();
+
   const bioInput = useRef<HTMLTextAreaElement>(null);
   const statusInput = useRef<HTMLInputElement>(null);
 
-  function handleSubmitForm(e: SyntheticEvent) {
-    e.preventDefault();
-    console.log(bioInput?.current?.value);
-    console.log(statusInput?.current?.checked);
+  const toast = useToast({ position: "bottom-right", isClosable: true, duration: 5000 });
+
+  async function handleSubmitForm(event: SyntheticEvent) {
+    event.preventDefault();
+    addToLoadingList("submitBtn");
+
+    try {
+      await api.post("/updateUser", {
+        bio: bioInput?.current?.value,
+        allowCantada: statusInput?.current?.checked,
+        discordId: user?.sub?.slice(-18),
+      });
+
+      toast({
+        render: ({ onClose }) => (
+          <CustomToast
+            onClose={onClose}
+            title="Dados atualizados!"
+            variant="success"
+            description="ELE GOSTA 😏"
+          />
+        ),
+      });
+    } catch (err) {
+      toast({
+        render: ({ onClose }) => (
+          <CustomToast
+            onClose={onClose}
+            title="Erro!"
+            variant="error"
+            description="Hoje não, Faro 😨"
+          />
+        ),
+      });
+      console.error(err);
+    }
+    removeFromLoadingList("submitBtn");
+  }
+
+  async function handleRequestDelete() {
+    try {
+      addToLoadingList("deleteBtn");
+      await api.delete("/deleteUser", {
+        data: { discordId: user?.sub?.slice(-18) },
+      });
+      toast({
+        render: ({ onClose }) => (
+          <CustomToast
+            onClose={onClose}
+            title="Seus dados foram deletados!"
+            variant="success"
+            description="Adeus 😭"
+          />
+        ),
+      });
+      await router.push("/api/auth/logout");
+      removeFromLoadingList("deleteBtn");
+    } catch {}
   }
 
   if (isLoading) return <GlobalLoading />;
@@ -58,7 +126,7 @@ const Profile: NextPage = () => {
         color="brand.400"
       >
         <form
-          onSubmit={(e) => handleSubmitForm(e)}
+          onSubmit={(event) => handleSubmitForm(event)}
           onChange={() => {
             !hasDataChanged && setHasDataChanged(true);
           }}
@@ -77,44 +145,57 @@ const Profile: NextPage = () => {
               <Avatar size="md" src={user?.picture!} />
             </Box>
 
-            <FormControl>
-              <FormLabel htmlFor="bio">Bio</FormLabel>
+            <FormArea
+              htmlFor="bio"
+              formLabel="Bio"
+              formHelperText="Deixe seus pretendentes se derretendo em apenas 120 caracteres."
+            >
               <CustomEditableInput
                 id="bio"
+                userBio={bio}
                 ref={bioInput}
                 placeholder="Sua bio está vazia!"
               />
-              <FormHelperText>
-                Deixe seus pretendentes se derretendo em apenas 120 caracteres.
-              </FormHelperText>
-            </FormControl>
+            </FormArea>
 
-            <FormControl>
-              <FormLabel htmlFor="allowCantada">Na pista?</FormLabel>
-              <Switch id="allowCantada" ref={statusInput} colorScheme="brand" />
-              <FormHelperText>
-                Caso desmarcado, você não receberá cantadas.
-                <br />
-                Por enquanto, essa opção é aplicada em todos os servidores que você está
-                no Discord.
-              </FormHelperText>
-            </FormControl>
+            <FormArea
+              formLabel="Na pista?"
+              htmlFor="allowCantada"
+              formHelperText="Caso desmarcado, você não receberá cantadas.\nPor enquanto, essa opção é aplicada em todos os servidores que você está
+                no Discord."
+            >
+              <Switch
+                id="allowCantada"
+                ref={statusInput}
+                defaultChecked={status}
+                colorScheme="brand"
+              />
+            </FormArea>
 
-            <FormControl color="red">
-              <FormLabel htmlFor="deleteData" color="red.400">
-                Deletar dados
-              </FormLabel>
-              <Button id="deleteData" variant="danger">
+            <FormArea
+              htmlFor="deleteUser"
+              formLabel="Deletar conta"
+              formHelperText="Seus dados serão permanentemente perdidos."
+              helperTextColor="red.400"
+              labelColor="red.400"
+            >
+              <Button
+                id="deleteUser"
+                variant="danger"
+                onClick={handleRequestDelete}
+                isLoading={loadingList.includes("deleteBtn")}
+              >
                 Deletar
               </Button>
-              <FormHelperText color="red.300">
-                Seus dados serão permanentemente perdidos
-              </FormHelperText>
-            </FormControl>
+            </FormArea>
 
             <Box marginInline="auto" marginTop="6">
               <SlideFade in={hasDataChanged}>
-                <Button isLoading={false} maxWidth="fit-content" type="submit">
+                <Button
+                  isLoading={loadingList.includes("submitBtn")}
+                  maxWidth="fit-content"
+                  type="submit"
+                >
                   Salvar mudanças
                 </Button>
               </SlideFade>
@@ -126,10 +207,23 @@ const Profile: NextPage = () => {
   );
 };
 
-export default Profile;
+export default memo(Profile);
 
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  return {
-    props: {},
-  };
-};
+export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
+  async getServerSideProps({ req, res }) {
+    const session = getSession(req, res);
+    const userDiscordId = await session?.user.sub.slice(-18);
+
+    const collection = database.collection("users");
+    const userInfo = await collection.findOne({ discordId: userDiscordId });
+
+    return {
+      props: {
+        userInfo: {
+          bio: userInfo?.bio ?? "",
+          status: userInfo?.allowCantada ?? "",
+        },
+      },
+    };
+  },
+});

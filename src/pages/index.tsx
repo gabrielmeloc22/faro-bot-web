@@ -13,7 +13,7 @@ const Home: NextPage = () => {
         />
       </Head>
       <Container
-        maxWidth="100%"
+        maxWidth="100vw"
         margin={0}
         padding={0}
         bgImage="images/vai-dar-namoro.png"

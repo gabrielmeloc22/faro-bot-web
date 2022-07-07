@@ -15,13 +15,14 @@ import { FiCheck, FiX, FiEdit } from "react-icons/fi";
 interface CustomEditableInputProps {
   id: string;
   placeholder?: string;
+  userBio: string;
 }
 
 export const CustomEditableInput = forwardRef<
   HTMLTextAreaElement,
   CustomEditableInputProps
->(({ id, placeholder }, ref) => {
-  const [bio, setBio] = useState("");
+>(({ id, userBio, placeholder }, ref) => {
+  const [bio, setBio] = useState(userBio);
 
   function EditableControls() {
     const { isEditing, getSubmitButtonProps, getCancelButtonProps, getEditButtonProps } =
