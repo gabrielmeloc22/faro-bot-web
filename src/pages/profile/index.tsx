@@ -12,7 +12,6 @@ import {
 } from "@chakra-ui/react";
 
 import type { NextPage, GetServerSideProps } from "next";
-import router from "next/router";
 import Head from "next/head";
 
 import { database } from "../../services/mongodb";
@@ -20,7 +19,7 @@ import { api } from "../../services/axios";
 
 import { memo, SyntheticEvent, useRef, useState } from "react";
 
-import { getSession, useUser, withPageAuthRequired } from "@auth0/nextjs-auth0";
+import { getSession, signIn, signOut, useSession } from "next-auth/react";
 
 import { CustomEditableInput } from "../../components/CustomEditableInput";
 import { GlobalLoading } from "../../components/Loading";
@@ -29,16 +28,20 @@ import { CustomToast } from "../../components/CustomToast";
 import { FaDiscord } from "react-icons/fa";
 import { FormArea } from "../../components/FormArea";
 import { useLoadingList } from "../../hooks/useLoadingList";
+import { DiscordProfile } from "next-auth/providers/discord";
 
 interface ProfileProps {
   userInfo: {
+    discordId: string;
     bio: string;
-    status: boolean;
+    allowCantada: boolean;
   };
 }
 
-const Profile: NextPage<ProfileProps> = ({ userInfo: { bio, status } }) => {
-  const { user, isLoading } = useUser();
+const Profile: NextPage<ProfileProps> = ({
+  userInfo: { bio, allowCantada, discordId },
+}) => {
+  const { status, data: session } = useSession();
 
   const [hasDataChanged, setHasDataChanged] = useState(false);
 
@@ -57,7 +60,8 @@ const Profile: NextPage<ProfileProps> = ({ userInfo: { bio, status } }) => {
       await api.post("/updateUser", {
         bio: bioInput?.current?.value,
         allowCantada: statusInput?.current?.checked,
-        discordId: user?.sub?.slice(-18),
+        discordId,
+        updatedAt: new Date(),
       });
 
       toast({
@@ -90,7 +94,7 @@ const Profile: NextPage<ProfileProps> = ({ userInfo: { bio, status } }) => {
     try {
       addToLoadingList("deleteBtn");
       await api.delete("/deleteUser", {
-        data: { discordId: user?.sub?.slice(-18) },
+        data: { discordId },
       });
       toast({
         render: ({ onClose }) => (
@@ -102,15 +106,15 @@ const Profile: NextPage<ProfileProps> = ({ userInfo: { bio, status } }) => {
           />
         ),
       });
-      await router.push("/api/auth/logout");
+      await signOut();
       removeFromLoadingList("deleteBtn");
     } catch {}
   }
 
-  if (isLoading) return <GlobalLoading />;
+  if (status === "loading") return <GlobalLoading />;
 
-  if (!user) {
-    router.push("/api/auth/login");
+  if (!session?.user) {
+    signIn();
     return <GlobalLoading />;
   }
 
@@ -139,10 +143,10 @@ const Profile: NextPage<ProfileProps> = ({ userInfo: { bio, status } }) => {
               <Box marginLeft="auto" textAlign="right">
                 <Text display="flex" alignItems="center" gap="2">
                   <FaDiscord size="18" />
-                  {user.nickname}
+                  {session.user.name}
                 </Text>
               </Box>
-              <Avatar size="md" src={user?.picture!} />
+              <Avatar size="md" src={session.user.image as string} />
             </Box>
 
             <FormArea
@@ -167,7 +171,7 @@ const Profile: NextPage<ProfileProps> = ({ userInfo: { bio, status } }) => {
               <Switch
                 id="allowCantada"
                 ref={statusInput}
-                defaultChecked={status}
+                defaultChecked={allowCantada}
                 colorScheme="brand"
               />
             </FormArea>
@@ -209,21 +213,30 @@ const Profile: NextPage<ProfileProps> = ({ userInfo: { bio, status } }) => {
 
 export default memo(Profile);
 
-export const getServerSideProps: GetServerSideProps = withPageAuthRequired({
-  async getServerSideProps({ req, res }) {
-    const session = getSession(req, res);
-    const userDiscordId = await session?.user.sub.slice(-18);
+export const getServerSideProps: GetServerSideProps = async (ctx) => {
+  const session = await getSession(ctx);
 
-    const collection = database.collection("users");
-    const userInfo = await collection.findOne({ discordId: userDiscordId });
-
+  if (!session) {
     return {
-      props: {
-        userInfo: {
-          bio: userInfo?.bio ?? "",
-          status: userInfo?.allowCantada ?? "",
-        },
+      redirect: {
+        permanent: false,
+        destination: "/api/auth/signin",
       },
+      props: {},
     };
-  },
-});
+  }
+
+  const userProfile = session.userProfile as DiscordProfile;
+  const collection = database.collection("users");
+  const userInfo = await collection.findOne({ discordId: userProfile?.id });
+
+  return {
+    props: {
+      userInfo: {
+        discordId: userProfile.id,
+        bio: userInfo?.bio,
+        allowCantada: userInfo?.allowCantada,
+      },
+    },
+  };
+};

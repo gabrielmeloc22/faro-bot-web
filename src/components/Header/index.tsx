@@ -1,11 +1,11 @@
 import { Container, Link, List, ListItem, Button } from "@chakra-ui/react";
 import NextLink from "next/link";
-import { useUser } from "@auth0/nextjs-auth0";
 
 import { FaGithub } from "react-icons/fa";
+import { useSession } from "next-auth/react";
 
 export function Header() {
-  const { user } = useUser();
+  const { data: session } = useSession();
 
   return (
     <Container color="brand.300" maxWidth="100vw" boxShadow="nav" padding={0}>
@@ -34,12 +34,6 @@ export function Header() {
           </NextLink>
         </ListItem>
 
-        {/* <ListItem marginLeft="4vw">
-          <NextLink href="/dashboard" passHref>
-            <Link>Sobre</Link>
-          </NextLink>
-        </ListItem> */}
-
         <ListItem marginLeft="auto">
           <NextLink href="/profile" passHref>
             <Link>Meu perfil</Link>
@@ -47,12 +41,12 @@ export function Header() {
         </ListItem>
 
         <ListItem>
-          {!user ? (
-            <NextLink href="/api/auth/login">
+          {!session ? (
+            <NextLink href="/api/auth/signin">
               <Button variant="secondary">Login</Button>
             </NextLink>
           ) : (
-            <NextLink href="/api/auth/logout">
+            <NextLink href="/api/auth/signout">
               <Button variant="primary">Logout</Button>
             </NextLink>
           )}
