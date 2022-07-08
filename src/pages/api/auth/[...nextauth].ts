@@ -33,11 +33,6 @@ export default NextAuth({
 
       return true;
     },
-    async redirect({ url, baseUrl }) {
-      if (url === baseUrl) return "/profile";
-      return baseUrl;
-    },
-
     async jwt({ token, profile }) {
       profile && (token.userProfile = profile);
       return token;

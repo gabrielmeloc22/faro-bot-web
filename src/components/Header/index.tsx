@@ -2,7 +2,7 @@ import { Container, Link, List, ListItem, Button } from "@chakra-ui/react";
 import NextLink from "next/link";
 
 import { FaGithub } from "react-icons/fa";
-import { useSession } from "next-auth/react";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 export function Header() {
   const { data: session } = useSession();
@@ -42,13 +42,27 @@ export function Header() {
 
         <ListItem>
           {!session ? (
-            <NextLink href="/api/auth/signin">
-              <Button variant="secondary">Login</Button>
-            </NextLink>
+            <Button
+              variant="secondary"
+              onClick={() =>
+                signIn("discord", {
+                  callbackUrl: "/profile",
+                })
+              }
+            >
+              Login
+            </Button>
           ) : (
-            <NextLink href="/api/auth/signout">
-              <Button variant="primary">Logout</Button>
-            </NextLink>
+            <Button
+              variant="primary"
+              onClick={() =>
+                signOut({
+                  callbackUrl: "/",
+                })
+              }
+            >
+              Logout
+            </Button>
           )}
         </ListItem>
 
