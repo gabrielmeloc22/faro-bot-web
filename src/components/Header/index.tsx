@@ -8,7 +8,7 @@ export function Header() {
   const { data: session } = useSession();
 
   return (
-    <Container color="brand.300" maxWidth="100vw" boxShadow="nav" padding={0}>
+    <Container color="brand.400" maxWidth="100vw" boxShadow="nav" padding={0}>
       <List
         display="flex"
         gap="8"
@@ -34,7 +34,7 @@ export function Header() {
           </NextLink>
         </ListItem>
 
-        <ListItem marginLeft="auto">
+        <ListItem marginLeft="auto" marginRight="6">
           <NextLink href="/profile" passHref>
             <Link>Meu perfil</Link>
           </NextLink>

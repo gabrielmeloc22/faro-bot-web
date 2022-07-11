@@ -52,9 +52,9 @@ export const Button: ComponentStyleConfig = {
       },
     },
     secondary: {
-      _hover: { backgroundColor: "gray.300", color: "brand.600" },
+      _hover: { backgroundColor: "gray.300", color: "gray.500" },
       backgroundColor: "gray.200",
-      color: "brand.500",
+      color: "gray.500",
       _loading: {
         _hover: { background: "gray.100" },
       },
@@ -70,12 +70,14 @@ export const Button: ComponentStyleConfig = {
       },
     },
     ghost: {
-      width: "fit-content",
+      minWidth: "fit-content",
       height: "fit-content",
+      padding: 0,
+      paddingStart: 0,
+      paddingEnd: 0,
       background: "none",
       _hover: { background: "none", opacity: "0.7" },
       _focus: { background: "none" },
-      padding: 0,
     },
   },
   defaultProps: {
@@ -148,6 +150,45 @@ export const CustomToast: ComponentStyleConfig = {
       badge: {
         color: "blue.400",
       },
+    },
+  },
+};
+
+export const Modal: ComponentStyleConfig = {
+  baseStyle: {
+    overlay: {
+      backdropFilter: "blur(4px)",
+    },
+    header: {
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      gap: "4",
+      borderTopRadius: "8",
+      paddingTop: "1.5rem",
+      fontSize: "1.125rem",
+      fontWeight: "700",
+      color: "red.500",
+    },
+    body: {
+      textAlign: "center",
+      fontSize: "0.95rem",
+      paddingBlock: "1.25rem",
+      color: "gray.600",
+    },
+    closeButton: {
+      position: "relative",
+      inset: 0,
+      width: "fit-content",
+      height: "fit-content",
+      paddingInline: "4",
+      borderRadius: "0.75rem",
+      lineHeight: "2.6675",
+      fontSize: "0.9375rem",
+      fontWeight: "600",
+      backgroundColor: "gray.200",
+      color: "gray.500",
+      _hover: { backgroundColor: "gray.300", color: "gray.500" },
     },
   },
 };

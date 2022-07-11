@@ -19,16 +19,17 @@ import { api } from "../../services/axios";
 
 import { memo, SyntheticEvent, useRef, useState } from "react";
 
-import { getSession, signIn, signOut, useSession } from "next-auth/react";
+import { getSession, signIn, useSession } from "next-auth/react";
+import { DiscordProfile } from "next-auth/providers/discord";
+
+import { useLoadingList } from "../../hooks/useLoadingList";
 
 import { CustomEditableInput } from "../../components/CustomEditableInput";
 import { GlobalLoading } from "../../components/Loading";
 import { CustomToast } from "../../components/CustomToast";
-
-import { FaDiscord } from "react-icons/fa";
 import { FormArea } from "../../components/FormArea";
-import { useLoadingList } from "../../hooks/useLoadingList";
-import { DiscordProfile } from "next-auth/providers/discord";
+import { DeleteBtn } from "../../components/DeleteBtn";
+import { FaDiscord } from "react-icons/fa";
 
 interface ProfileProps {
   userInfo: {
@@ -88,35 +89,10 @@ const Profile: NextPage<ProfileProps> = ({
       console.error(err);
     }
     removeFromLoadingList("submitBtn");
-  }
-
-  async function handleRequestDelete() {
-    try {
-      addToLoadingList("deleteBtn");
-      await api.delete("/deleteUser", {
-        data: { discordId },
-      });
-      toast({
-        render: ({ onClose }) => (
-          <CustomToast
-            onClose={onClose}
-            title="Seus dados foram deletados!"
-            variant="success"
-            description="Adeus 😭"
-          />
-        ),
-      });
-      await signOut();
-      removeFromLoadingList("deleteBtn");
-    } catch {}
+    setHasDataChanged(false);
   }
 
   if (status === "loading") return <GlobalLoading />;
-
-  if (!session?.user) {
-    signIn();
-    return <GlobalLoading />;
-  }
 
   return (
     <>
@@ -143,10 +119,10 @@ const Profile: NextPage<ProfileProps> = ({
               <Box marginLeft="auto" textAlign="right">
                 <Text display="flex" alignItems="center" gap="2">
                   <FaDiscord size="18" />
-                  {session.user.name}
+                  {session?.user?.name}
                 </Text>
               </Box>
-              <Avatar size="md" src={session.user.image as string} />
+              <Avatar size="md" src={session?.user?.image as string} />
             </Box>
 
             <FormArea
@@ -177,20 +153,13 @@ const Profile: NextPage<ProfileProps> = ({
             </FormArea>
 
             <FormArea
-              htmlFor="deleteUser"
+              htmlFor="deleteAccount"
               formLabel="Deletar conta"
               formHelperText="Seus dados serão permanentemente perdidos."
               helperTextColor="red.400"
               labelColor="red.400"
             >
-              <Button
-                id="deleteUser"
-                variant="danger"
-                onClick={handleRequestDelete}
-                isLoading={loadingList.includes("deleteBtn")}
-              >
-                Deletar
-              </Button>
+              <DeleteBtn discordId={discordId} id="deleteAccount" />
             </FormArea>
 
             <Box marginInline="auto" marginTop="6">
