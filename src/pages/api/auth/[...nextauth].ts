@@ -1,6 +1,6 @@
 import NextAuth from "next-auth";
-import DiscordProvider, { DiscordProfile } from "next-auth/providers/discord";
-import { database } from "../../../services/mongodb";
+import DiscordProvider from "next-auth/providers/discord";
+import { createUser } from "./_lib/createUser";
 
 export default NextAuth({
   providers: [
@@ -13,24 +13,10 @@ export default NextAuth({
   callbacks: {
     async signIn({ profile }) {
       try {
-        const discordProfile = profile as DiscordProfile;
-        const collection = database.collection("users");
-        const user = await collection.findOne({ discordId: discordProfile.id });
-
-        if (!user) {
-          await collection.insertOne({
-            name: discordProfile.username,
-            discordId: discordProfile.id,
-            bio: "",
-            allowCantada: true,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          });
-        }
+        await createUser(profile);
       } catch (err) {
-        console.log(err);
+        console.error(err);
       }
-
       return true;
     },
     async jwt({ token, profile }) {
@@ -41,5 +27,8 @@ export default NextAuth({
       session.userProfile = token.userProfile;
       return session;
     },
+  },
+  pages: {
+    signIn: "/auth/signin",
   },
 });

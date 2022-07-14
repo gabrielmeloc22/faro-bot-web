@@ -8,7 +8,14 @@ export function Header() {
   const { data: session } = useSession();
 
   return (
-    <Container color="brand.400" maxWidth="100vw" boxShadow="nav" padding={0}>
+    <Container
+      color="brand.400"
+      maxWidth="100vw"
+      boxShadow="nav"
+      padding={0}
+      bgColor="white"
+      as="header"
+    >
       <List
         display="flex"
         gap="8"
@@ -18,7 +25,6 @@ export function Header() {
         paddingBlock="6"
         marginInline="auto"
         fontWeight="500"
-        role="navigation"
       >
         <ListItem color="brand.500">
           <NextLink href="/" passHref>

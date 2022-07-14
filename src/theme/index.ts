@@ -1,11 +1,11 @@
 import { extendTheme } from "@chakra-ui/react";
 
-import { colors, fonts, shadows } from "./globalStyleConfig";
-import { Form, Button, FormLabel, CustomToast, Modal } from "./componentsStyleConfig";
+import { colors, fonts, shadows } from "./config";
+import { components } from "./components";
 
 export const theme = extendTheme({
   colors,
   fonts,
   shadows,
-  components: { Form, Button, FormLabel, CustomToast, Modal },
+  components,
 });

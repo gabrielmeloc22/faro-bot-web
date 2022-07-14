@@ -1,8 +1,9 @@
 import { Container, Flex, Heading, Text } from "@chakra-ui/react";
-import type { NextPage } from "next";
 import Head from "next/head";
+import { Layout } from "../components/Layout";
+import { NextPageWithLayout } from "./_app";
 
-const Home: NextPage = () => {
+const Home: NextPageWithLayout = () => {
   return (
     <>
       <Head>
@@ -42,5 +43,7 @@ const Home: NextPage = () => {
     </>
   );
 };
+
+Home.getLayout = (page) => <Layout>{page}</Layout>;
 
 export default Home;

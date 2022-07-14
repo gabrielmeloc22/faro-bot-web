@@ -1,9 +1,9 @@
 import { Button, useBoolean, useDisclosure, useToast } from "@chakra-ui/react";
 import { signOut } from "next-auth/react";
 import { FiAlertCircle } from "react-icons/fi";
-import { api } from "../services/axios";
+import { api } from "../../services/axios";
 import { ConfirmationModal } from "./ConfirmationModal";
-import { CustomToast } from "./CustomToast";
+import { Toast } from "../Toast";
 
 interface DeleteBtnProps {
   discordId: string;
@@ -24,7 +24,7 @@ export function DeleteBtn({ discordId, id }: DeleteBtnProps) {
       });
       toast({
         render: ({ onClose }) => (
-          <CustomToast
+          <Toast
             onClose={onClose}
             title="Seus dados foram deletados!"
             variant="success"

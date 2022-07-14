@@ -2,33 +2,36 @@ import {
   Avatar,
   Box,
   Container,
-  Flex,
   Heading,
   Switch,
   Text,
   SlideFade,
   Button,
   useToast,
+  Stack,
 } from "@chakra-ui/react";
 
-import type { NextPage, GetServerSideProps } from "next";
+import type { GetServerSideProps } from "next";
 import Head from "next/head";
+
+import { Layout } from "../../components/Layout";
+import { NextPageWithLayout } from "../_app";
 
 import { database } from "../../services/mongodb";
 import { api } from "../../services/axios";
 
-import { memo, SyntheticEvent, useRef, useState } from "react";
+import { SyntheticEvent, useRef, useState } from "react";
 
-import { getSession, signIn, useSession } from "next-auth/react";
+import { getSession, useSession } from "next-auth/react";
 import { DiscordProfile } from "next-auth/providers/discord";
 
 import { useLoadingList } from "../../hooks/useLoadingList";
 
-import { CustomEditableInput } from "../../components/CustomEditableInput";
+import { EditableInput } from "../../components/Form/EditableInput";
 import { GlobalLoading } from "../../components/Loading";
-import { CustomToast } from "../../components/CustomToast";
-import { FormArea } from "../../components/FormArea";
-import { DeleteBtn } from "../../components/DeleteBtn";
+import { Toast } from "../../components/Toast";
+import { FormArea } from "../../components/Form/FormArea";
+import { DeleteBtn } from "../../components/Form/DeleteBtn";
 import { FaDiscord } from "react-icons/fa";
 
 interface ProfileProps {
@@ -39,7 +42,7 @@ interface ProfileProps {
   };
 }
 
-const Profile: NextPage<ProfileProps> = ({
+const Profile: NextPageWithLayout<ProfileProps> = ({
   userInfo: { bio, allowCantada, discordId },
 }) => {
   const { status, data: session } = useSession();
@@ -51,7 +54,7 @@ const Profile: NextPage<ProfileProps> = ({
   const bioInput = useRef<HTMLTextAreaElement>(null);
   const statusInput = useRef<HTMLInputElement>(null);
 
-  const toast = useToast({ position: "bottom-right", isClosable: true, duration: 5000 });
+  const chakraToast = useToast({ position: "bottom-right", isClosable: true, duration: 5000 });
 
   async function handleSubmitForm(event: SyntheticEvent) {
     event.preventDefault();
@@ -65,9 +68,9 @@ const Profile: NextPage<ProfileProps> = ({
         updatedAt: new Date(),
       });
 
-      toast({
+      chakraToast({
         render: ({ onClose }) => (
-          <CustomToast
+          <Toast
             onClose={onClose}
             title="Dados atualizados!"
             variant="success"
@@ -76,9 +79,9 @@ const Profile: NextPage<ProfileProps> = ({
         ),
       });
     } catch (err) {
-      toast({
+      chakraToast({
         render: ({ onClose }) => (
-          <CustomToast
+          <Toast
             onClose={onClose}
             title="Erro!"
             variant="error"
@@ -102,85 +105,86 @@ const Profile: NextPage<ProfileProps> = ({
       <Container
         marginBlock="24"
         maxWidth="container.lg"
+        minH="fit-content"
         paddingInline="8"
         color="brand.400"
+        mb={0}
       >
-        <form
+        <Stack
+          spacing="8"
+          as="form"
           onSubmit={(event) => handleSubmitForm(event)}
           onChange={() => {
             !hasDataChanged && setHasDataChanged(true);
           }}
+          mb="16"
         >
-          <Flex flexDirection="column" gap="8">
-            <Box display="flex" gap="4">
-              <Heading color="brand.500" fontWeight="400" fontSize="4xl">
-                Perfil
-              </Heading>
-              <Box marginLeft="auto" textAlign="right">
-                <Text display="flex" alignItems="center" gap="2">
-                  <FaDiscord size="18" />
-                  {session?.user?.name}
-                </Text>
-              </Box>
-              <Avatar size="md" src={session?.user?.image as string} />
+          <Box display="flex" gap="4">
+            <Heading color="brand.500" fontWeight="400" fontSize="4xl">
+              Perfil
+            </Heading>
+            <Box marginLeft="auto" textAlign="right">
+              <Text display="flex" alignItems="center" gap="2">
+                <FaDiscord size="18" />
+                {session?.user?.name}
+              </Text>
             </Box>
+            <Avatar size="md" src={session?.user?.image as string} />
+          </Box>
 
-            <FormArea
-              htmlFor="bio"
-              formLabel="Bio"
-              formHelperText="Deixe seus pretendentes se derretendo em apenas 120 caracteres."
-            >
-              <CustomEditableInput
-                id="bio"
-                userBio={bio}
-                ref={bioInput}
-                placeholder="Sua bio está vazia!"
-              />
-            </FormArea>
+          <FormArea
+            htmlFor="bio"
+            formLabel="Bio"
+            formHelperText="Deixe seus pretendentes se derretendo em apenas 120 caracteres."
+          >
+            <EditableInput
+              id="bio"
+              userBio={bio}
+              ref={bioInput}
+              placeholder="Sua bio está vazia!"
+            />
+          </FormArea>
 
-            <FormArea
-              formLabel="Na pista?"
-              htmlFor="allowCantada"
-              formHelperText="Caso desmarcado, você não receberá cantadas.\nPor enquanto, essa opção é aplicada em todos os servidores que você está
+          <FormArea
+            formLabel="Na pista?"
+            htmlFor="allowCantada"
+            formHelperText="Caso desmarcado, você não receberá cantadas.\nPor enquanto, essa opção é aplicada em todos os servidores que você está
                 no Discord."
-            >
-              <Switch
-                id="allowCantada"
-                ref={statusInput}
-                defaultChecked={allowCantada}
-                colorScheme="brand"
-              />
-            </FormArea>
+          >
+            <Switch
+              id="allowCantada"
+              ref={statusInput}
+              defaultChecked={allowCantada}
+              colorScheme="brand"
+            />
+          </FormArea>
 
-            <FormArea
-              htmlFor="deleteAccount"
-              formLabel="Deletar conta"
-              formHelperText="Seus dados serão permanentemente perdidos."
-              helperTextColor="red.400"
-              labelColor="red.400"
-            >
-              <DeleteBtn discordId={discordId} id="deleteAccount" />
-            </FormArea>
+          <FormArea
+            htmlFor="deleteAccount"
+            formLabel="Deletar conta"
+            formHelperText="Seus dados serão permanentemente perdidos."
+            helperTextColor="red.400"
+            labelColor="red.400"
+          >
+            <DeleteBtn discordId={discordId} id="deleteAccount" />
+          </FormArea>
 
-            <Box marginInline="auto" marginTop="6">
-              <SlideFade in={hasDataChanged}>
-                <Button
-                  isLoading={loadingList.includes("submitBtn")}
-                  maxWidth="fit-content"
-                  type="submit"
-                >
-                  Salvar mudanças
-                </Button>
-              </SlideFade>
-            </Box>
-          </Flex>
-        </form>
+          <Box w="fit-content" alignSelf="center">
+            <SlideFade in={hasDataChanged}>
+              <Button isLoading={loadingList.includes("submitBtn")} type="submit">
+                Salvar mudanças
+              </Button>
+            </SlideFade>
+          </Box>
+        </Stack>
       </Container>
     </>
   );
 };
 
-export default memo(Profile);
+Profile.getLayout = (page) => <Layout>{page}</Layout>;
+
+export default Profile;
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
   const session = await getSession(ctx);

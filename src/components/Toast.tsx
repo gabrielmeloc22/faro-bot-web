@@ -1,7 +1,7 @@
-import { Badge, Box, Text, useMultiStyleConfig } from "@chakra-ui/react";
+import { Badge, Box, ChakraProps, Text, useMultiStyleConfig } from "@chakra-ui/react";
 import { FiCheck, FiInfo, FiX } from "react-icons/fi";
 
-interface CustomToastProps {
+interface ToastProps extends ChakraProps {
   title: string;
   description?: string;
   onClose: () => void;
@@ -10,11 +10,12 @@ interface CustomToastProps {
 
 const variantsIcons = { success: FiCheck, error: FiX, info: FiInfo };
 
-export function CustomToast(props: CustomToastProps) {
+export function Toast(props: ToastProps) {
   const { description, title, variant, onClose, ...rest } = props;
   const Icon = variantsIcons[variant];
 
-  const styles = useMultiStyleConfig("CustomToast", { variant });
+  const styles = useMultiStyleConfig("Toast", { variant });
+
   return (
     <Box __css={styles.container} {...rest}>
       <Badge sx={styles.badge}>

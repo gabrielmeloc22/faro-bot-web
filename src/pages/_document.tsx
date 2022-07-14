@@ -1,5 +1,4 @@
 import { Html, Head, Main, NextScript } from "next/document";
-import { ColorModeScript } from "@chakra-ui/react";
 
 function MyDocument() {
   return (
@@ -14,7 +13,6 @@ function MyDocument() {
         <link rel="shortcut icon" href="/favicon.ico" />
       </Head>
       <body>
-        {/* <ColorModeScript initialColorMode={}/> */}
         <Main />
         <NextScript />
       </body>
