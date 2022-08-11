@@ -9,6 +9,8 @@ export function Header() {
 
   return (
     <Container
+      position="sticky"
+      inset={0}
       color="brand.400"
       maxWidth="100vw"
       boxShadow="nav"

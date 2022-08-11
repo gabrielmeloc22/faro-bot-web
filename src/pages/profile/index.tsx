@@ -27,7 +27,7 @@ import { DiscordProfile } from "next-auth/providers/discord";
 
 import { useLoadingList } from "../../hooks/useLoadingList";
 
-import { EditableInput } from "../../components/Form/EditableInput";
+import { BioInput } from "../../components/Form/BioInput";
 import { GlobalLoading } from "../../components/Loading";
 import { Toast } from "../../components/Toast";
 import { FormArea } from "../../components/Form/FormArea";
@@ -137,7 +137,7 @@ const Profile: NextPageWithLayout<ProfileProps> = ({
             formLabel="Bio"
             formHelperText="Deixe seus pretendentes se derretendo em apenas 120 caracteres."
           >
-            <EditableInput
+            <BioInput
               id="bio"
               userBio={bio}
               ref={bioInput}

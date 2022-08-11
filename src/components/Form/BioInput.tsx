@@ -12,13 +12,13 @@ import {
 import { forwardRef, useState } from "react";
 import { FiCheck, FiX, FiEdit } from "react-icons/fi";
 
-interface EditableInputProps {
+interface BioInputProps {
   id: string;
   placeholder?: string;
   userBio: string;
 }
 
-export const EditableInput = forwardRef<HTMLTextAreaElement, EditableInputProps>(
+export const BioInput = forwardRef<HTMLTextAreaElement, BioInputProps>(
   ({ id, userBio, placeholder }, ref) => {
     const [bio, setBio] = useState(userBio);
 
@@ -57,8 +57,8 @@ export const EditableInput = forwardRef<HTMLTextAreaElement, EditableInputProps>
         alignItems="center"
         gap="4"
         id={id}
+        defaultValue={bio}
         placeholder={placeholder}
-        value={bio}
         isPreviewFocusable={true}
       >
         <EditablePreview
@@ -87,4 +87,4 @@ export const EditableInput = forwardRef<HTMLTextAreaElement, EditableInputProps>
   }
 );
 
-EditableInput.displayName = "EditableInput";
+BioInput.displayName = "BioInput";
